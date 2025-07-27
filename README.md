@@ -66,15 +66,23 @@ A comprehensive, modern, and responsive School Management System built with Reac
 The system uses **email verification codes** for secure authentication:
 
 #### Quick Demo Access:
-1. **Use these email addresses** (click the role buttons on login page):
-   - **Admin**: admin@school.com
-   - **Teacher**: teacher@school.com  
-   - **Student**: student@school.com
-   - **Parent**: parent@school.com
 
-2. **Enter email** and click "Send Verification Code"
-3. **Check the demo verification popup** (top-right corner) or browser console
-4. **Copy and enter the 6-digit code** to sign in
+##### **🔐 Admin Access (Password Login):**
+- **Email**: emmanuelevian@gmail.com
+- **Password**: neemajoy12k
+- **Steps**: 
+  1. Click "Admin" button or enter email
+  2. Enter password when prompted
+  3. Click "Sign In as Admin"
+
+##### **📧 Other Roles (Email Verification):**
+- **Teacher**: teacher@school.com
+- **Student**: student@school.com  
+- **Parent**: parent@school.com
+- **Steps**:
+  1. Enter email and click "Send Verification Code"
+  2. Check the demo verification popup (top-right corner)
+  3. Copy and enter the 6-digit code to sign in
 
 #### Registration:
 - Create new accounts with any email

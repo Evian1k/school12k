@@ -77,7 +77,7 @@ export const AuthProvider = ({ children }) => {
 
   const getUserDatabase = () => {
     const defaultUsers = [
-      { id: 1, email: 'admin@school.com', role: 'admin', name: 'John Admin', emailVerified: true },
+      { id: 1, email: 'emmanuelevian@gmail.com', role: 'admin', name: 'Emmanuel Evian', emailVerified: true, password: 'neemajoy12k' },
       { id: 2, email: 'teacher@school.com', role: 'teacher', name: 'Sarah Teacher', emailVerified: true },
       { id: 3, email: 'student@school.com', role: 'student', name: 'Mike Student', emailVerified: true },
       { id: 4, email: 'parent@school.com', role: 'parent', name: 'Lisa Parent', emailVerified: true }
@@ -113,6 +113,71 @@ export const AuthProvider = ({ children }) => {
       toast({
         title: "Login Failed",
         description: error.message || "Unable to send verification code",
+        variant: "destructive",
+      });
+      return { success: false, error: error.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loginWithPassword = async (email, password) => {
+    try {
+      setLoading(true);
+      
+      const users = getUserDatabase();
+      const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+      
+      if (!user) {
+        throw new Error('No account found with this email address');
+      }
+
+      // Check if user has password authentication enabled
+      if (!user.password) {
+        throw new Error('This account uses email verification. Please use the verification code method.');
+      }
+
+      if (user.password !== password) {
+        throw new Error('Invalid password');
+      }
+
+      // Login successful
+      const token = 'verified-token-' + user.id + '-' + Date.now();
+      const userData = { ...user };
+      delete userData.password; // Don't store password in session
+      
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+      
+      toast({
+        title: "Login Successful",
+        description: `Welcome back, ${userData.name}!`,
+      });
+      
+      // Navigate based on role
+      switch (userData.role) {
+        case 'admin':
+          navigate('/admin');
+          break;
+        case 'teacher':
+          navigate('/teacher');
+          break;
+        case 'student':
+          navigate('/student');
+          break;
+        case 'parent':
+          navigate('/parent');
+          break;
+        default:
+          navigate('/');
+      }
+      
+      return { success: true };
+    } catch (error) {
+      toast({
+        title: "Login Failed",
+        description: error.message,
         variant: "destructive",
       });
       return { success: false, error: error.message };
@@ -373,6 +438,7 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated: !!user,
     pendingVerification,
     sendLoginCode,
+    loginWithPassword,
     verifyLoginCode,
     sendRegistrationCode,
     verifyRegistrationCode,

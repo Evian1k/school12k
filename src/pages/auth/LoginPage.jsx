@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, GraduationCap, ArrowLeft, RefreshCw, CheckCircle } from 'lucide-react';
+import { Mail, GraduationCap, ArrowLeft, RefreshCw, CheckCircle, Eye, EyeOff, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,17 +11,37 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
-  const [step, setStep] = useState('email'); // 'email' or 'verification'
-  const { sendLoginCode, verifyLoginCode, resendCode, loading, pendingVerification } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
+  const [step, setStep] = useState('email'); // 'email', 'password', or 'verification'
+  const [loginMethod, setLoginMethod] = useState('code'); // 'code' or 'password'
+  const { sendLoginCode, loginWithPassword, verifyLoginCode, resendCode, loading, pendingVerification } = useAuth();
 
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
     if (!email) return;
     
+    // Check if this is the admin email that requires password
+    if (email.toLowerCase() === 'emmanuelevian@gmail.com') {
+      setLoginMethod('password');
+      setStep('password');
+      return;
+    }
+    
     const result = await sendLoginCode(email);
     if (result.success) {
       setStep('verification');
+    }
+  };
+
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    if (!email || !password) return;
+    
+    const result = await loginWithPassword(email, password);
+    if (result.success) {
+      // Navigation handled by auth context
     }
   };
 
@@ -42,7 +62,9 @@ const LoginPage = () => {
   const handleBackToEmail = () => {
     setStep('email');
     setEmail('');
+    setPassword('');
     setVerificationCode('');
+    setLoginMethod('code');
   };
 
   const fillDemoEmail = (demoEmail) => {
@@ -50,7 +72,7 @@ const LoginPage = () => {
   };
 
   const demoAccounts = [
-    { role: 'Admin', email: 'admin@school.com' },
+    { role: 'Admin', email: 'emmanuelevian@gmail.com' },
     { role: 'Teacher', email: 'teacher@school.com' },
     { role: 'Student', email: 'student@school.com' },
     { role: 'Parent', email: 'parent@school.com' }
@@ -85,11 +107,14 @@ const LoginPage = () => {
             </div>
             
             <h1 className="text-4xl lg:text-5xl font-bold text-white">
-              {step === 'email' ? 'Welcome Back!' : 'Check Your Email'}
+              {step === 'email' ? 'Welcome Back!' : 
+               step === 'password' ? 'Enter Password' : 'Check Your Email'}
             </h1>
             <p className="text-xl text-gray-300">
               {step === 'email' 
                 ? 'Enter your email address and we\'ll send you a verification code to sign in securely.'
+                : step === 'password'
+                ? 'Enter your password to complete the login process.'
                 : 'We\'ve sent a 6-digit verification code to your email. Enter it below to continue.'
               }
             </p>
@@ -110,6 +135,11 @@ const LoginPage = () => {
                       <Mail className="w-6 h-6" />
                       <span>Sign In</span>
                     </>
+                  ) : step === 'password' ? (
+                    <>
+                      <Lock className="w-6 h-6" />
+                      <span>Admin Login</span>
+                    </>
                   ) : (
                     <>
                       <CheckCircle className="w-6 h-6" />
@@ -120,6 +150,8 @@ const LoginPage = () => {
                 <p className="text-gray-300">
                   {step === 'email' 
                     ? 'Enter your email to receive a verification code'
+                    : step === 'password'
+                    ? `Enter password for ${email}`
                     : `Code sent to ${pendingVerification?.email || email}`
                   }
                 </p>
@@ -158,6 +190,60 @@ const LoginPage = () => {
                         </>
                       )}
                     </Button>
+                  </form>
+                ) : step === 'password' ? (
+                  <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-white">Password</label>
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? 'text' : 'password'}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="Enter your password"
+                          required
+                          className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 pr-10"
+                          autoComplete="current-password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                          aria-label={showPassword ? "Hide password" : "Show password"}
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <Button
+                      type="submit"
+                      disabled={loading || !password}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
+                    >
+                      {loading ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                          Signing In...
+                        </>
+                      ) : (
+                        <>
+                          <Lock className="w-4 h-4 mr-2" />
+                          Sign In as Admin
+                        </>
+                      )}
+                    </Button>
+
+                    <div className="flex justify-center">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={handleBackToEmail}
+                        className="text-gray-300 hover:text-white p-0 h-auto"
+                      >
+                        ← Back to Email
+                      </Button>
+                    </div>
                   </form>
                 ) : (
                   <form onSubmit={handleVerificationSubmit} className="space-y-4">
@@ -237,7 +323,7 @@ const LoginPage = () => {
                         ))}
                       </div>
                       <p className="text-xs text-gray-400 text-center">
-                        Click any role to fill email, then check browser console for verification code
+                        Click any role to fill email. Admin requires password, others use verification codes.
                       </p>
                     </div>
 
