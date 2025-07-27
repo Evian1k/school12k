@@ -141,7 +141,7 @@ const Sidebar = ({ isMobileOpen, onCloseMobile, isCollapsed, onToggleCollapse })
         animate={{ width: isCollapsed ? '5rem' : '16rem' }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
         className={cn(
-          'fixed left-0 top-0 z-50 h-full sidebar-gradient border-r border-gray-700 lg:static lg:z-auto transition-transform duration-300',
+          'fixed left-0 top-0 z-50 h-full sidebar-gradient border-r border-gray-700 lg:static lg:z-auto transition-transform duration-300 overflow-hidden',
           isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         )}
       >

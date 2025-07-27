@@ -1,0 +1,5 @@
+## Pages
+- [404 Not Found - EduManage](/notfound): The page you are looking for does not exist.
+- [EduManage - Complete School Management System](/landing): Comprehensive school management system for administrators, teachers, students, and parents. Streamline education with our powerful platform.
+- [Settings - EduManage](/settings): Manage your profile, password, and notification settings.
+- [Unauthorized Access - EduManage](/unauthorized): You don

@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       
-      // Mock authentication - replace with actual API call
+      // Demo authentication - In production, replace with actual API call
       const mockUsers = [
         { id: 1, email: 'admin@school.com', password: 'admin123', role: 'admin', name: 'John Admin' },
         { id: 2, email: 'teacher@school.com', password: 'teacher123', role: 'teacher', name: 'Sarah Teacher' },
@@ -99,7 +99,7 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       
-      // Mock registration - replace with actual API call
+      // Demo registration - In production, replace with actual API call
       const newUser = {
         id: Date.now(),
         ...userData,

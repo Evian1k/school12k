@@ -100,6 +100,8 @@ const LoginPage = () => {
                       placeholder="Enter your email"
                       required
                       className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                      aria-describedby="email-help"
+                      autoComplete="email"
                     />
                   </div>
 
@@ -114,11 +116,14 @@ const LoginPage = () => {
                         placeholder="Enter your password"
                         required
                         className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 pr-10"
+                        aria-describedby="password-help"
+                        autoComplete="current-password"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
                       >
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
