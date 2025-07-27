@@ -4,6 +4,8 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Layout from '@/components/layout/Layout';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import VerificationCodeDisplay from '@/components/VerificationCodeDisplay';
 import { Toaster } from '@/components/ui/toaster';
 import { Loader2 } from 'lucide-react';
 
@@ -60,11 +62,12 @@ const ParentNotificationsPage = lazy(() => import('@/pages/parent/NotificationsP
 
 function App() {
   return (
-    <ThemeProvider>
-      <Router>
-        <AuthProvider>
-          <Suspense fallback={<LoadingFallback />}>
-            <Routes>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <Router>
+          <AuthProvider>
+            <Suspense fallback={<LoadingFallback />}>
+              <Routes>
               {/* Public Routes */}
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<LoginPage />} />
@@ -126,14 +129,16 @@ function App() {
                 <Route path="profile" element={<Navigate to="/settings" />} />
               </Route>
 
-              {/* Catch all route */}
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
-          </Suspense>
-          <Toaster />
-        </AuthProvider>
-      </Router>
-    </ThemeProvider>
+                {/* Catch all route */}
+                <Route path="*" element={<NotFoundPage />} />
+              </Routes>
+            </Suspense>
+            <VerificationCodeDisplay />
+            <Toaster />
+          </AuthProvider>
+        </Router>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 
