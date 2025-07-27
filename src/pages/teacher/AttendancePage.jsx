@@ -8,6 +8,7 @@ import { Select } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
+import QRAttendanceScanner from '@/components/QRAttendanceScanner';
 
 const attendanceData = [
   { id: 'STU001', name: 'Alice Johnson', status: 'Present' },
@@ -49,6 +50,17 @@ const AttendancePage = () => {
           <h1 className="text-3xl font-bold tracking-tight">Mark Attendance</h1>
           <p className="text-muted-foreground">Select a class and mark today's attendance.</p>
         </div>
+
+        {/* QR Code Scanner */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick QR Attendance</CardTitle>
+            <CardDescription>Scan student QR codes for fast attendance marking</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <QRAttendanceScanner />
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>

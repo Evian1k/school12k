@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
 import { Users, GraduationCap, BookOpen, DollarSign, TrendingUp, Calendar, Bell, UserCheck } from 'lucide-react';
@@ -9,13 +9,48 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { toast } from '@/components/ui/use-toast';
+import { dashboardAPI, announcementsAPI } from '@/lib/api';
 
 const AdminDashboard = () => {
-  const stats = [
-    { title: 'Total Students', value: '1,247', icon: Users, trend: 'up', trendValue: '+12%' },
-    { title: 'Total Staff', value: '89', icon: UserCheck, trend: 'up', trendValue: '+3%' },
-    { title: 'Active Classes', value: '42', icon: BookOpen, trend: 'up', trendValue: '+2%' },
-    { title: 'Monthly Revenue', value: '$45,230', icon: DollarSign, trend: 'up', trendValue: '+8%' }
+  const [dashboardStats, setDashboardStats] = useState(null);
+  const [announcements, setAnnouncements] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      const [statsResponse, announcementsResponse] = await Promise.all([
+        dashboardAPI.getStats(),
+        announcementsAPI.getAll()
+      ]);
+      
+      setDashboardStats(statsResponse.data);
+      setAnnouncements(announcementsResponse.data.slice(0, 4)); // Show only recent 4
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load dashboard data",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const stats = dashboardStats ? [
+    { title: 'Total Students', value: dashboardStats.total_students?.toString() || '0', icon: Users, trend: 'up', trendValue: '+12%' },
+    { title: 'Total Teachers', value: dashboardStats.total_teachers?.toString() || '0', icon: UserCheck, trend: 'up', trendValue: '+3%' },
+    { title: 'Active Classes', value: dashboardStats.total_classes?.toString() || '0', icon: BookOpen, trend: 'up', trendValue: '+2%' },
+    { title: 'Pending Fees', value: dashboardStats.pending_fees?.toString() || '0', icon: DollarSign, trend: 'down', trendValue: '-5%' }
+  ] : [
+    { title: 'Total Students', value: '0', icon: Users, trend: 'up', trendValue: '+0%' },
+    { title: 'Total Teachers', value: '0', icon: UserCheck, trend: 'up', trendValue: '+0%' },
+    { title: 'Active Classes', value: '0', icon: BookOpen, trend: 'up', trendValue: '+0%' },
+    { title: 'Pending Fees', value: '0', icon: DollarSign, trend: 'up', trendValue: '+0%' }
   ];
 
   const enrollmentData = [
@@ -35,12 +70,24 @@ const AdminDashboard = () => {
     { grade: 'F', count: 57, color: '#6B7280' }
   ];
 
-  const recentActivities = [
-    { id: 1, action: 'New student enrollment', user: 'John Smith', time: '2 hours ago', type: 'enrollment' },
-    { id: 2, action: 'Grade report generated', user: 'Sarah Johnson', time: '4 hours ago', type: 'report' },
-    { id: 3, action: 'Fee payment received', user: 'Mike Davis', time: '6 hours ago', type: 'payment' },
-    { id: 4, action: 'Staff meeting scheduled', user: 'Admin', time: '1 day ago', type: 'meeting' }
-  ];
+  const formatTimeAgo = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours} hours ago`;
+    if (diffInHours < 48) return '1 day ago';
+    return `${Math.floor(diffInHours / 24)} days ago`;
+  };
+
+  const recentActivities = announcements.map(announcement => ({
+    id: announcement.id,
+    action: announcement.title,
+    user: announcement.created_by,
+    time: formatTimeAgo(announcement.created_at),
+    type: 'announcement'
+  }));
 
   const upcomingEvents = [
     { id: 1, title: 'Parent-Teacher Conference', date: '2024-02-15', type: 'meeting' },
