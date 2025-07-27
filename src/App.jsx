@@ -116,8 +116,8 @@ function App() {
                 <Route path="profile" element={<Navigate to="/settings" />} />
               </Route>
 
-              {/* Parent Routes */}
-              <Route path="/parent" element={<ProtectedRoute allowedRoles={['parent']}><Layout /></ProtectedRoute>}>
+              {/* Parent/Guardian Routes */}
+              <Route path="/parent" element={<ProtectedRoute allowedRoles={['guardian']}><Layout /></ProtectedRoute>}>
                 <Route index element={<ParentDashboard />} />
                 <Route path="grades" element={<ParentGradesPage />} />
                 <Route path="attendance" element={<ParentAttendancePage />} />

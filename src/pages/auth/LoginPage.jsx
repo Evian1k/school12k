@@ -30,10 +30,10 @@ const LoginPage = () => {
   };
 
   const demoAccounts = [
-    { role: 'Admin', email: 'admin@school.com', password: 'admin123' },
-    { role: 'Teacher', email: 'teacher@school.com', password: 'teacher123' },
-    { role: 'Student', email: 'student@school.com', password: 'student123' },
-    { role: 'Parent', email: 'parent@school.com', password: 'parent123' }
+    { role: 'Admin', email: 'admin@edumanage.com', password: 'admin123' },
+    { role: 'Teacher', email: 'teacher@edumanage.com', password: 'teacher123' },
+    { role: 'Student', email: 'student@edumanage.com', password: 'student123' },
+    { role: 'Guardian', email: 'guardian@edumanage.com', password: 'guardian123' }
   ];
 
   const fillDemoAccount = (email, password) => {

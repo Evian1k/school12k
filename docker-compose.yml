@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: edumanage
+      POSTGRES_USER: edumanage_user
+      POSTGRES_PASSWORD: edumanage_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U edumanage_user -d edumanage"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Flask Backend
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql://edumanage_user:edumanage_password@postgres:5432/edumanage
+      JWT_SECRET_KEY: dev-secret-key-change-in-production
+      FLASK_ENV: development
+      FLASK_DEBUG: 'True'
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/auth/profile"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend (for production builds)
+  frontend:
+    image: node:18-alpine
+    working_dir: /app
+    environment:
+      VITE_API_URL: http://localhost:5000
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: sh -c "npm install && npm run dev -- --host"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

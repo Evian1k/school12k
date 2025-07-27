@@ -1,23 +1,48 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
-import { Users, PlusCircle, MoreHorizontal } from 'lucide-react';
+import { Users, PlusCircle, MoreHorizontal, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import DataTable from '@/components/DataTable';
 import { toast } from '@/components/ui/use-toast';
-
-const studentsData = [
-  { id: 'STU001', name: 'Alice Johnson', class: '10A', dob: '2008-05-12', parent: 'John Johnson', status: 'active' },
-  { id: 'STU002', name: 'Bob Williams', class: '11B', dob: '2007-09-23', parent: 'Jane Williams', status: 'active' },
-  { id: 'STU003', name: 'Charlie Brown', class: '9C', dob: '2009-02-18', parent: 'Charles Brown', status: 'inactive' },
-  { id: 'STU004', name: 'Diana Miller', class: '12A', dob: '2006-11-30', parent: 'David Miller', status: 'active' },
-  { id: 'STU005', name: 'Ethan Davis', class: '10A', dob: '2008-07-07', parent: 'Emily Davis', status: 'active' },
-];
+import { studentsAPI } from '@/lib/api';
 
 const StudentsPage = () => {
+  const [studentsData, setStudentsData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
+  const fetchStudents = async () => {
+    try {
+      const response = await studentsAPI.getAll();
+      const formattedData = response.data.map(student => ({
+        id: student.student_id,
+        name: student.name,
+        email: student.email,
+        phone: student.phone,
+        class: student.class_name || 'Not assigned',
+        guardian: student.guardian_name || 'Not assigned',
+        admission_date: student.admission_date,
+        status: student.is_active ? 'active' : 'inactive'
+      }));
+      setStudentsData(formattedData);
+    } catch (error) {
+      console.error('Error fetching students:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load students data",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
   const handleAction = (action, student) => {
     toast({
       title: `Action: ${action}`,
@@ -28,9 +53,9 @@ const StudentsPage = () => {
   const columns = [
     { accessorKey: 'id', header: 'Student ID' },
     { accessorKey: 'name', header: 'Name' },
+    { accessorKey: 'email', header: 'Email' },
     { accessorKey: 'class', header: 'Class' },
-    { accessorKey: 'dob', header: 'Date of Birth' },
-    { accessorKey: 'parent', header: 'Parent Name' },
+    { accessorKey: 'guardian', header: 'Guardian Name' },
     {
       accessorKey: 'status',
       header: 'Status',
@@ -91,7 +116,14 @@ const StudentsPage = () => {
             <CardDescription>A comprehensive list of all students currently enrolled.</CardDescription>
           </CardHeader>
           <CardContent>
-            <DataTable columns={columns} data={studentsData} filterColumn="name" />
+            {loading ? (
+              <div className="flex items-center justify-center h-32">
+                <Loader2 className="h-8 w-8 animate-spin" />
+                <span className="ml-2">Loading students...</span>
+              </div>
+            ) : (
+              <DataTable columns={columns} data={studentsData} filterColumn="name" />
+            )}
           </CardContent>
         </Card>
       </motion.div>

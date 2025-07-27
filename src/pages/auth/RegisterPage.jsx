@@ -12,11 +12,13 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
-    name: '',
+    first_name: '',
+    last_name: '',
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'student'
+    role: 'student',
+    phone: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -90,17 +92,31 @@ const RegisterPage = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-white">Full Name</label>
-                    <Input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      placeholder="Enter your full name"
-                      required
-                      className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-                    />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-white">First Name</label>
+                      <Input
+                        type="text"
+                        name="first_name"
+                        value={formData.first_name}
+                        onChange={handleChange}
+                        placeholder="First name"
+                        required
+                        className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-white">Last Name</label>
+                      <Input
+                        type="text"
+                        name="last_name"
+                        value={formData.last_name}
+                        onChange={handleChange}
+                        placeholder="Last name"
+                        required
+                        className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                      />
+                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -117,18 +133,30 @@ const RegisterPage = () => {
                   </div>
 
                   <div className="space-y-2">
+                    <label className="text-sm font-medium text-white">Phone</label>
+                    <Input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      placeholder="Phone number (optional)"
+                      className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
                     <label className="text-sm font-medium text-white">Role</label>
-                    <Select
+                    <select
                       name="role"
                       value={formData.role}
                       onChange={handleChange}
-                      className="bg-white/10 border-white/20 text-white"
+                      className="w-full px-3 py-2 bg-white/10 border border-white/20 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="student">Student</option>
                       <option value="teacher">Teacher</option>
-                      <option value="parent">Parent</option>
+                      <option value="guardian">Guardian</option>
                       <option value="admin">Administrator</option>
-                    </Select>
+                    </select>
                   </div>
 
                   <div className="space-y-2">
