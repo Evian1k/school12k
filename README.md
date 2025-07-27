@@ -61,16 +61,25 @@ A comprehensive, modern, and responsive School Management System built with Reac
 4. **Open in browser**
    Navigate to `http://localhost:5173`
 
-### Demo Accounts
+### Demo Authentication
 
-Access the system with these demo credentials:
+The system uses **email verification codes** for secure authentication:
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | admin@school.com | admin123 |
-| Teacher | teacher@school.com | teacher123 |
-| Student | student@school.com | student123 |
-| Parent | parent@school.com | parent123 |
+#### Quick Demo Access:
+1. **Use these email addresses** (click the role buttons on login page):
+   - **Admin**: admin@school.com
+   - **Teacher**: teacher@school.com  
+   - **Student**: student@school.com
+   - **Parent**: parent@school.com
+
+2. **Enter email** and click "Send Verification Code"
+3. **Check the demo verification popup** (top-right corner) or browser console
+4. **Copy and enter the 6-digit code** to sign in
+
+#### Registration:
+- Create new accounts with any email
+- Verification codes are shown in demo popup for testing
+- Real production deployment would send actual emails
 
 ## 🏗️ Production Deployment
 

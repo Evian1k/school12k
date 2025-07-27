@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, GraduationCap, ArrowLeft } from 'lucide-react';
+import { UserPlus, GraduationCap, ArrowLeft, RefreshCw, CheckCircle, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
@@ -15,38 +15,48 @@ const RegisterPage = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    password: '',
-    confirmPassword: '',
     role: 'student'
   });
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const { register, loading } = useAuth();
+  const [verificationCode, setVerificationCode] = useState('');
+  const [step, setStep] = useState('registration'); // 'registration' or 'verification'
+  const { sendRegistrationCode, verifyRegistrationCode, resendCode, loading, pendingVerification } = useAuth();
 
-  const handleSubmit = async (e) => {
+  const handleRegistrationSubmit = async (e) => {
     e.preventDefault();
     
     // Validation
-    if (formData.password !== formData.confirmPassword) {
+    if (!formData.name.trim()) {
       toast({
-        title: "Password Mismatch",
-        description: "Passwords do not match. Please try again.",
+        title: "Name Required",
+        description: "Please enter your full name.",
         variant: "destructive",
       });
       return;
     }
 
-    if (formData.password.length < 6) {
+    if (!formData.email.trim()) {
       toast({
-        title: "Password Too Short",
-        description: "Password must be at least 6 characters long.",
+        title: "Email Required",
+        description: "Please enter your email address.",
         variant: "destructive",
       });
       return;
     }
 
-    const { confirmPassword, ...userData } = formData;
-    await register(userData);
+    const result = await sendRegistrationCode(formData);
+    if (result.success) {
+      setStep('verification');
+    }
+  };
+
+  const handleVerificationSubmit = async (e) => {
+    e.preventDefault();
+    if (!verificationCode) return;
+    
+    const result = await verifyRegistrationCode(verificationCode);
+    if (result.success) {
+      // Navigation handled by auth context
+    }
   };
 
   const handleChange = (e) => {
@@ -54,6 +64,15 @@ const RegisterPage = () => {
       ...formData,
       [e.target.name]: e.target.value
     });
+  };
+
+  const handleResendCode = async () => {
+    await resendCode();
+  };
+
+  const handleBackToRegistration = () => {
+    setStep('registration');
+    setVerificationCode('');
   };
 
   return (
@@ -85,10 +104,13 @@ const RegisterPage = () => {
             </div>
             
             <h1 className="text-4xl lg:text-5xl font-bold text-white">
-              Join EduManage
+              {step === 'registration' ? 'Join EduManage' : 'Verify Your Email'}
             </h1>
             <p className="text-xl text-gray-300">
-              Create your account and start transforming your educational institution with our comprehensive management system.
+              {step === 'registration' 
+                ? 'Create your account and start transforming your educational institution with our comprehensive management system.'
+                : 'We\'ve sent a 6-digit verification code to your email. Enter it below to complete your registration.'
+              }
             </p>
           </motion.div>
 
@@ -101,113 +123,173 @@ const RegisterPage = () => {
           >
             <Card className="glass-effect border-white/20">
               <CardHeader className="text-center">
-                <CardTitle className="text-2xl font-bold text-white">Create Account</CardTitle>
-                <p className="text-gray-300">Fill in your details to get started</p>
+                <CardTitle className="text-2xl font-bold text-white flex items-center justify-center space-x-2">
+                  {step === 'registration' ? (
+                    <>
+                      <UserPlus className="w-6 h-6" />
+                      <span>Create Account</span>
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="w-6 h-6" />
+                      <span>Verify Email</span>
+                    </>
+                  )}
+                </CardTitle>
+                <p className="text-gray-300">
+                  {step === 'registration' 
+                    ? 'Fill in your details to get started'
+                    : `Code sent to ${pendingVerification?.email || formData.email}`
+                  }
+                </p>
               </CardHeader>
               <CardContent className="space-y-6">
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-white">Full Name</label>
-                    <Input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      placeholder="Enter your full name"
-                      required
-                      className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-                    />
-                  </div>
+                {step === 'registration' ? (
+                  <form onSubmit={handleRegistrationSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-white">Full Name</label>
+                      <Input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        placeholder="Enter your full name"
+                        required
+                        className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                        autoComplete="name"
+                      />
+                    </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-white">Email</label>
-                    <Input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="Enter your email"
-                      required
-                      className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
-                    />
-                  </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-white">Email Address</label>
+                      <Input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        placeholder="Enter your email address"
+                        required
+                        className="bg-white/10 border-white/20 text-white placeholder:text-gray-400"
+                        autoComplete="email"
+                      />
+                    </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-white">Role</label>
-                    <Select
-                      name="role"
-                      value={formData.role}
-                      onChange={handleChange}
-                      className="bg-white/10 border-white/20 text-white"
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-white">Role</label>
+                      <Select
+                        name="role"
+                        value={formData.role}
+                        onChange={handleChange}
+                        className="bg-white/10 border-white/20 text-white"
+                      >
+                        <option value="student">Student</option>
+                        <option value="teacher">Teacher</option>
+                        <option value="parent">Parent</option>
+                        <option value="admin">Administrator</option>
+                      </Select>
+                    </div>
+
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
                     >
-                      <option value="student">Student</option>
-                      <option value="teacher">Teacher</option>
-                      <option value="parent">Parent</option>
-                      <option value="admin">Administrator</option>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-white">Password</label>
-                    <div className="relative">
+                      {loading ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                          Sending Code...
+                        </>
+                      ) : (
+                        <>
+                          <Mail className="w-4 h-4 mr-2" />
+                          Send Verification Code
+                        </>
+                      )}
+                    </Button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleVerificationSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-white">Verification Code</label>
                       <Input
-                        type={showPassword ? 'text' : 'password'}
-                        name="password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        placeholder="Create a password"
+                        type="text"
+                        value={verificationCode}
+                        onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        placeholder="Enter 6-digit code"
                         required
-                        className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 pr-10"
+                        className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 text-center text-lg tracking-widest"
+                        maxLength={6}
+                        autoComplete="one-time-code"
                       />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
+                      <p className="text-xs text-gray-400 text-center">
+                        Check your email for the verification code
+                      </p>
                     </div>
-                  </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-white">Confirm Password</label>
-                    <div className="relative">
-                      <Input
-                        type={showConfirmPassword ? 'text' : 'password'}
-                        name="confirmPassword"
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        placeholder="Confirm your password"
-                        required
-                        className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 pr-10"
-                      />
-                      <button
+                    <Button
+                      type="submit"
+                      disabled={loading || verificationCode.length !== 6}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
+                    >
+                      {loading ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                          Verifying...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          Verify & Create Account
+                        </>
+                      )}
+                    </Button>
+
+                    <div className="flex justify-between items-center text-sm">
+                      <Button
                         type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                        variant="ghost"
+                        onClick={handleResendCode}
+                        disabled={loading}
+                        className="text-gray-300 hover:text-white p-0 h-auto"
                       >
-                        {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
+                        Resend Code
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={handleBackToRegistration}
+                        className="text-gray-300 hover:text-white p-0 h-auto"
+                      >
+                        Change Details
+                      </Button>
                     </div>
+                  </form>
+                )}
+
+                {step === 'registration' && (
+                  <div className="text-center">
+                    <p className="text-gray-300">
+                      Already have an account?{' '}
+                      <Link to="/login" className="text-blue-400 hover:text-blue-300 font-medium">
+                        Sign in here
+                      </Link>
+                    </p>
                   </div>
+                )}
 
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
-                  >
-                    {loading ? 'Creating Account...' : 'Create Account'}
-                  </Button>
-                </form>
-
-                <div className="text-center">
-                  <p className="text-gray-300">
-                    Already have an account?{' '}
-                    <Link to="/login" className="text-blue-400 hover:text-blue-300 font-medium">
-                      Sign in here
-                    </Link>
-                  </p>
-                </div>
+                {step === 'verification' && (
+                  <div className="text-center space-y-2">
+                    <p className="text-xs text-gray-400">
+                      The verification code is displayed in the browser console for demo purposes
+                    </p>
+                    <p className="text-gray-300">
+                      Already have an account?{' '}
+                      <Link to="/login" className="text-blue-400 hover:text-blue-300 font-medium">
+                        Sign in here
+                      </Link>
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </motion.div>
