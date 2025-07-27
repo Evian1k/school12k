@@ -38,14 +38,20 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       
       // Demo authentication - In production, replace with actual API call
-      const mockUsers = [
+      const defaultUsers = [
         { id: 1, email: 'admin@school.com', password: 'admin123', role: 'admin', name: 'John Admin' },
         { id: 2, email: 'teacher@school.com', password: 'teacher123', role: 'teacher', name: 'Sarah Teacher' },
         { id: 3, email: 'student@school.com', password: 'student123', role: 'student', name: 'Mike Student' },
         { id: 4, email: 'parent@school.com', password: 'parent123', role: 'parent', name: 'Lisa Parent' }
       ];
 
-      const foundUser = mockUsers.find(u => u.email === email && u.password === password);
+      // Get registered users from localStorage
+      const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+      
+      // Combine default users with registered users
+      const allUsers = [...defaultUsers, ...registeredUsers];
+
+      const foundUser = allUsers.find(u => u.email === email && u.password === password);
       
       if (foundUser) {
         const token = 'mock-jwt-token-' + foundUser.id;
@@ -99,6 +105,22 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       
+      // Check if user already exists
+      const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+      const defaultUsers = [
+        { id: 1, email: 'admin@school.com', password: 'admin123', role: 'admin', name: 'John Admin' },
+        { id: 2, email: 'teacher@school.com', password: 'teacher123', role: 'teacher', name: 'Sarah Teacher' },
+        { id: 3, email: 'student@school.com', password: 'student123', role: 'student', name: 'Mike Student' },
+        { id: 4, email: 'parent@school.com', password: 'parent123', role: 'parent', name: 'Lisa Parent' }
+      ];
+      
+      const allUsers = [...defaultUsers, ...registeredUsers];
+      const existingUser = allUsers.find(u => u.email === userData.email);
+      
+      if (existingUser) {
+        throw new Error('User with this email already exists');
+      }
+      
       // Demo registration - In production, replace with actual API call
       const newUser = {
         id: Date.now(),
@@ -106,16 +128,23 @@ export const AuthProvider = ({ children }) => {
         role: userData.role || 'student'
       };
       
+      // Store the complete user data (including password) for future logins
+      const userForStorage = { ...newUser };
+      registeredUsers.push(userForStorage);
+      localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+      
+      // Create session for the new user
       const token = 'mock-jwt-token-' + newUser.id;
-      delete newUser.password;
+      const userForSession = { ...newUser };
+      delete userForSession.password;
       
       localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(newUser));
-      setUser(newUser);
+      localStorage.setItem('user', JSON.stringify(userForSession));
+      setUser(userForSession);
       
       toast({
         title: "Registration Successful",
-        description: `Welcome to the school system, ${newUser.name}!`,
+        description: `Welcome to the school system, ${userForSession.name}!`,
       });
       
       navigate('/');
@@ -143,13 +172,22 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
+  const clearAllUsers = () => {
+    localStorage.removeItem('registeredUsers');
+    toast({
+      title: "User Data Cleared",
+      description: "All registered users have been cleared.",
+    });
+  };
+
   const value = {
     user,
     login,
     register,
     logout,
     loading,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
+    clearAllUsers
   };
 
   return (
